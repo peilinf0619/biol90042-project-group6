@@ -422,12 +422,12 @@ ggplot(hits_data,
     # Increase distance between axis titles and axes
     axis.title.x = element_text(
       margin = margin(t = 15),
-      size = 12
+      size = 13
     ),
     
     axis.title.y = element_text(
       margin = margin(r = 15),
-      size = 12
+      size = 13
     ),
     
     # Improve axis tick labels
