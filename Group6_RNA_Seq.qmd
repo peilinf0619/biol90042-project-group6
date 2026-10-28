@@ -62,7 +62,7 @@ design <- model.matrix(~ 0 + group, data = dge$samples)
 colnames(design) <- c("Control", "Case")
 
 # Compare controls with cases
-# A positive log-fold change indicates higher expression in controls.
+# A positive log-fold change indicates higher expression in PD cases
 contr_matrix <- makeContrasts(
   CasevsControl = "Case - Control",
   levels = design
@@ -111,7 +111,7 @@ dt <- decideTests(efit)
 dt
 summary(dt)
 
-# Retrieve the results for the control-versus-case contrast
+# Retrieve the results for the case-versus-control contrast
 top <- topTable(
   efit, 
   coef = "CasevsControl", 
