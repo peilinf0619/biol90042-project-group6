@@ -64,7 +64,7 @@ colnames(design) <- c("Control", "Case")
 # Compare controls with cases
 # A positive log-fold change indicates higher expression in controls.
 contr_matrix <- makeContrasts(
-  ControlvsCase = "Control - Case",
+  CasevsControl = "Case - Control",
   levels = design
 )
 ```
@@ -86,12 +86,13 @@ v <- voom(dge, design, plot = TRUE)
 The fitted model contains coefficients representing weighted average log-CPM expression for each phenotype group. `contrasts.fit()` then calculates the specified comparison between groups.
 
 ```{r}
-vfit <- lmFit(v)
+vfit <- lmFit(v, design)
 
 # Check coefficients for each group
 head(vfit$coefficients)
 
 vfit <- contrasts.fit(vfit, contrasts = contr_matrix)
+
 
 # Check coefficients for the contrast
 head(vfit$coefficients)
@@ -102,8 +103,8 @@ head(vfit$coefficients)
 The `eBayes()` function computes moderated t-statistics, moderated F-statistics, and log-odds of differential expression. Empirical Bayes moderation borrows information across genes to improve estimates of variability.
 
 ```{r}
+
 efit <- eBayes(vfit)
-efit
 
 # Classify genes as upregulated, downregulated, or not significantly differentially expressed
 dt <- decideTests(efit)
@@ -111,7 +112,11 @@ dt
 summary(dt)
 
 # Retrieve the results for the control-versus-case contrast
-top <- topTable(efit, coef = "ControlvsCase", n = Inf)
+top <- topTable(
+  efit, 
+  coef = "CasevsControl", 
+  n = Inf
+  )
 ```
 
 ### Join differential-expression results with Entrez IDs
@@ -140,11 +145,11 @@ A table of p-values and fold changes can be difficult to interpret, so the resul
 
 ```{r}
 ma_plot_data <- tibble(
-  logFC = efit$coefficients[, "ControlvsCase"],
+  logFC = efit$coefficients[, "CasevsControl"],
   AvgExpr = efit$Amean,
-  status = factor(as.numeric(dt[, "ControlvsCase"])),
+  status = factor(as.numeric(dt[, "CasevsControl"])),
   gene = de_annotated$gene_name,
-  p_value = efit$p.value[, "ControlvsCase"]
+  p_value = efit$p.value[, "CasevsControl"]
 )
 
 ma_plot_data_fct <- ma_plot_data %>%
@@ -205,7 +210,11 @@ ggplot(ma_plot_data_fct, aes(x = logFC, y = -log10(p_value), col = status)) +
   ) +
   scale_colour_manual(values = scale_cols) +
   theme_classic() +
-  labs(title = "Volcano plot for Case vs Control")
+  labs(
+    title = "Volcano plot for Case vs Control",
+    x = "Log2 fold change (Case − Control)",
+    y = "-log10(p-value)"
+  )
 ```
 
 ## Question 2: Gene ontology
