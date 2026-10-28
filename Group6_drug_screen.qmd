@@ -408,13 +408,13 @@ ggplot(hits_data,
     plot.title = element_text(
       hjust = 0.5,
       face = "bold",
-      size = 16,
+      size = 18,
       margin = margin(b = 8)
     ),
     
     plot.subtitle = element_text(
       hjust = 0.5,
-      size = 11,
+      size = 12,
       colour = "grey40",
       margin = margin(b = 15)
     ),
@@ -422,16 +422,16 @@ ggplot(hits_data,
     # Increase distance between axis titles and axes
     axis.title.x = element_text(
       margin = margin(t = 15),
-      size = 13
+      size = 12
     ),
     
     axis.title.y = element_text(
       margin = margin(r = 15),
-      size = 13
+      size = 12
     ),
     
     # Improve axis tick labels
-    axis.text = element_text(size = 11),
+    axis.text = element_text(size = 12),
     
     # Reduce visual clutter
     panel.grid.minor = element_blank(),
