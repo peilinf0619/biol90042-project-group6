@@ -166,56 +166,196 @@ top_de_genes <- ma_plot_data_fct %>%
   na.omit()
 
 scale_cols <- c(
-  "Not DE" = "black",
-  "Down" = "#800080",
-  "Up" = "#E30B5C"
+  "Not DE" = "#B0B0B0",  # Grey: Not significant
+  "Down"   = "#0072B2",  # Blue: Downregulated in PD
+  "Up"     = "#E31A1C"   # Red: Upregulated in PD
 )
 
-ggplot(ma_plot_data_fct, aes(x = AvgExpr, y = logFC, col = status)) +
+ggplot(ma_plot_data_fct,
+       aes(x = AvgExpr, y = logFC, colour = status)) +
+
+  # Non-significant genes (grey background)
   geom_point(
-    data = ma_plot_data_fct %>% filter(status == "Not DE"),
-    size = 0.1
+    data = ma_plot_data_fct %>%
+      filter(status == "Not DE"),
+    size = 0.5,
+    alpha = 0.35
   ) +
+
+  # Significant genes (red and blue)
   geom_point(
-    data = ma_plot_data_fct %>% filter(status != "Not DE"),
-    size = 3
+    data = ma_plot_data_fct %>%
+      filter(status != "Not DE"),
+    size = 2,
+    alpha = 0.9
   ) +
+
+  # Labels for top genes
   geom_label_repel(
     data = top_de_genes,
-    aes(label = gene, col = NULL, size = 2),
+    aes(label = gene),
+    colour = "black",
+    size = 3,
+    max.overlaps = 20,
     show.legend = FALSE
   ) +
+
   scale_colour_manual(values = scale_cols) +
+
   theme_classic() +
-  labs(title = "MA plot for Case vs Control")
+
+  labs(
+    title = "MA Plot: Parkinson's Disease vs Control",
+    x = "Average log2 expression",
+    y = "Log2 fold change (PD - Control)",
+    colour = "Gene expression"
+  )
 ```
 
 #### Volcano plot
 
 ```{r}
-ggplot(ma_plot_data_fct, aes(x = logFC, y = -log10(p_value), col = status)) +
+
+# Define consistent colours
+scale_cols <- c(
+  "Not DE" = "#B0B0B0",
+  "Down"   = "#0072B2",
+  "Up"     = "#E31A1C"
+)
+
+# Prepare data for plotting
+volcano_data <- ma_plot_data_fct %>%
+  mutate(
+    FDR = p.adjust(p_value, method = "BH"),
+    neg_log10_FDR = -log10(pmax(FDR, .Machine$double.xmin))
+  )
+
+# Select 10 significant genes for labelling
+label_genes <- volcano_data %>%
+  filter(status != "Not DE", !is.na(gene)) %>%
+  slice_min(FDR, n = 10, with_ties = FALSE)
+
+# Set symmetrical x-axis limits
+x_limit <- ceiling(max(abs(volcano_data$logFC), na.rm = TRUE))
+
+# Create the volcano plot
+volcano_plot <- ggplot(
+  volcano_data,
+  aes(x = logFC, y = neg_log10_FDR, colour = status)
+) +
+
+  # Non-significant genes
   geom_point(
-    data = ma_plot_data_fct %>% filter(status == "Not DE"),
-    size = 0.1
+    data = volcano_data %>% filter(status == "Not DE"),
+    size = 0.7,
+    alpha = 0.35
   ) +
+
+  # Significant genes
   geom_point(
-    data = ma_plot_data_fct %>% filter(status != "Not DE"),
-    size = 1
+    data = volcano_data %>% filter(status != "Not DE"),
+    size = 2.5,
+    alpha = 0.9
   ) +
+
+  # Significance threshold
+  geom_hline(
+    yintercept = -log10(0.05),
+    linetype = "dashed",
+    colour = "grey40",
+    linewidth = 0.5
+  ) +
+
+  # No-change reference line
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    colour = "grey50",
+    linewidth = 0.5
+  ) +
+
+  # Gene labels
   geom_label_repel(
-    data = top_de_genes,
-    aes(label = gene, col = NULL),
-    max.overlaps = 20,
+    data = label_genes,
+    aes(label = gene),
+    colour = "black",
+    size = 3.5,
+    max.overlaps = Inf,
+    box.padding = 0.5,
+    point.padding = 0.3,
     show.legend = FALSE
   ) +
-  scale_colour_manual(values = scale_cols) +
-  theme_classic() +
+
+  # Colours and legend
+  scale_colour_manual(
+    values = scale_cols,
+    breaks = c("Up", "Down", "Not DE"),
+    labels = c(
+      "Upregulated",
+      "Downregulated",
+      "Not significant"
+    ),
+    name = "Expression status"
+  ) +
+
+  # Symmetrical x-axis
+  coord_cartesian(
+    xlim = c(-x_limit, x_limit)
+  ) +
+
+  # Titles and labels
   labs(
-    title = "Volcano plot for Case vs Control",
-    x = "Log2 fold change (Case − Control)",
-    y = "-log10(p-value)"
+    title = "Differential Gene Expression in Parkinson's Disease",
+    subtitle = "PD cases vs healthy controls (FDR < 0.05)",
+    x = expression(log[2] ~ "fold change (PD vs Control)"),
+    y = expression(-log[10] ~ "(FDR-adjusted p-value)")
+  ) +
+
+  theme_classic(base_size = 15) +
+
+  theme(
+    # Centre title and subtitle
+   plot.title.position = "panel",
+  plot.title = element_text(
+    hjust = 0.5,
+    size = 16,
+    face = "bold"
+    ),
+    plot.subtitle = element_text(
+      hjust = 0.5,
+      size = 12,
+      colour = "grey40"
+    ),
+
+    # Axis labels
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+
+    # Legend
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 11),
+    legend.position = "right",
+
+    # Plot margins
+    plot.margin = margin(12, 20, 12, 12)
   )
+
+volcano_plot
+
 ```
+
+```{r}
+# Save volcano plot 
+ggsave(
+  filename = "volcano_plot.png",
+  plot = volcano_plot,
+  width = 11,
+  height = 7,
+  dpi = 300,
+  bg = "white"
+)
+```
+
 
 ## Question 2: Gene ontology
 
