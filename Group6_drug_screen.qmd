@@ -340,6 +340,138 @@ significant_compounds <- welch_results |>
   arrange(p.adj)
 ```
 
+```{r}
+hits_data <- combined_data |>
+  filter(cmpd %in% significant_compounds$cmpd) |> 
+  mutate(cmpd = as.factor(cmpd))
+
+hits_summary <- hits_data |>
+  group_by(cmpd, cond) |>
+  summarise(
+    mean_lum = mean(luminescence),
+    sd_lum = sd(luminescence),
+    .groups = "drop"
+  )
+```
+
+```{r}
+
+ggplot(hits_data,
+       aes(x = factor(cmpd),
+           y = luminescence,
+           colour = cond,       # Keeps summary stats color-coded
+           group = cond)) +
+  
+  # Individual replicate measurements
+  geom_point(
+    position = position_jitterdodge(
+      jitter.width = 0.12,
+      dodge.width = 0.5
+    ),
+    alpha = 0.7,                # Made slightly more transparent to sit in background
+    size = 1,                 # Made smaller as requested
+    colour = "black"           # Forces replicates to be grey (change to "black" if preferred)
+  ) +
+  scale_y_continuous(
+    name = "Luminescence (RLU)",            # Change the label text
+    breaks = seq((min(hits_data$luminescence)-65), max(hits_data$luminescence) + 20, by = 50), 
+    limits = c(400, 750)) +
+  
+  # Mean luminescence
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = position_dodge(width = 0.5),
+    size = 2
+  ) +
+  
+  # Standard deviation
+  stat_summary(
+    fun.data = mean_sdl,
+    fun.args = list(mult = 1),
+    geom = "errorbar",
+    position = position_dodge(width = 0.5),
+    width = 0.15,
+    linewidth = 0.8
+  ) +
+  
+  labs(
+    title = "Neuronal viability following MPP exposure",
+    subtitle = "Luminescence of significant compounds (mean ± SD; n = 4)",
+    x = "Compound ID",
+    colour = "Condition"
+  ) +
+  
+  theme_minimal(base_size = 13) +
+  theme(
+    # Centre title and subtitle
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 16,
+      margin = margin(b = 8)
+    ),
+    
+    plot.subtitle = element_text(
+      hjust = 0.5,
+      size = 11,
+      colour = "grey40",
+      margin = margin(b = 15)
+    ),
+    
+    # Increase distance between axis titles and axes
+    axis.title.x = element_text(
+      margin = margin(t = 15),
+      size = 13
+    ),
+    
+    axis.title.y = element_text(
+      margin = margin(r = 15),
+      size = 13
+    ),
+    
+    # Improve axis tick labels
+    axis.text = element_text(size = 11),
+    
+    # Reduce visual clutter
+    panel.grid.minor = element_blank(),
+    
+    # Move legend to bottom
+    legend.position = "bottom",
+    
+    # Add padding around the entire graph
+    plot.margin = margin(15, 20, 15, 20)
+  )
+```
+
+```{r}
+# Save stacked plot
+ggsave(
+  filename = "neuronal_viability_plot.png",           
+  width = 8,                                
+  height = 5.5,                              
+  units = "in",                              
+  dpi = 300               
+)
+```
+
+```{r}
+# Create accompanying summary table
+significant_table <- comparison_data |>
+  filter(cmpd %in% significant_compounds$cmpd) |>
+  select(cmpd, ctrl, test, difference, percent_change)
+  
+library(knitr)
+
+  knitr::kable(
+    significant_table,
+    col.names = c("Compound ID", "Control Mean", "Test Mean", "Difference", "% Change"),
+    digits = 2,
+    align = c("c", "r", "r", "r", "r"),
+    caption = "Luminescence Summary of Significant Compounds")
+
+```
+
 # Question 3: What are the mechanisms of action and targets of the compounds you identify in Q2?
 
 ```{r}
