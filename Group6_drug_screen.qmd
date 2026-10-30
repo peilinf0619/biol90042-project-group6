@@ -220,7 +220,7 @@ The t-test assumes that observations within and between the compared groups are 
 
 ## Assumption 2: Outcome is approximately normally distributed within each group
 
-Normality can be explored using Q-Q plots of residuals centred within each compound-condition group, followed by Shapiro-Wilk tests for individual groups. Centring removes differences in group means before inspeciting the pooled residual distributions.
+Normality can be explored using Q-Q plots of residuals centred within each compound-condition group, followed by Shapiro-Wilk tests for individual groups. Centring removes differences in group means before inspecting the pooled residual distributions.
 
 ```{r}
 # Install and load "rstatix" package
@@ -396,7 +396,7 @@ ggplot(hits_data,
   ) +
   
   labs(
-    title = "Neuronal viability following MPP exposure",
+    title = "Luminescence following MPP-induced stress",
     subtitle = "Luminescence of significant compounds (mean ± SD; n = 4)",
     x = "Compound ID",
     colour = "Condition"
