@@ -356,7 +356,6 @@ ggsave(
 )
 ```
 
-
 ## Question 2: Gene ontology
 
 Which gene ontology families do the differentially expressed genes belong to?
