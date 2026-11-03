@@ -91,7 +91,7 @@ ggplot(plate1_long) +
     colour = "grey50", 
     linewidth = 0.1
   ) +
-  scale_fill_viridis_c(option = "viridis", direction = 1) +
+  scale_fill_viridis_c(option = "cividis", direction = 1) +
   # label every 2nd column number at the top to avoid over-crowding x-acis
   scale_x_continuous(breaks = seq(1, 48, by = 2), expand = c(0, 0), position = "top") +
   # reverse y-axis so plate row 1 appears at the top
@@ -397,7 +397,7 @@ ggplot(hits_data,
   
   labs(
     title = "Luminescence following MPP-induced stress",
-    subtitle = "Luminescence of significant compounds (mean ± SD; n = 4)",
+    subtitle = "Luminescence of significant compounds (mean ± SD; four technical replicates per condition)",
     x = "Compound ID",
     colour = "Condition"
   ) +
